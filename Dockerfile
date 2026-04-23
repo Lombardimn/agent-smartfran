@@ -1,12 +1,15 @@
-FROM python:3.12-slim
+FROM python:3.11-slim-bookworm
 
 # Instalar ODBC Driver 18 for SQL Server (requerido por pyodbc para Fabric Warehouse)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
     unixodbc-dev \
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/debian/12/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+       | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
+    && curl https://packages.microsoft.com/config/debian/12/prod.list \
+       | sed 's|deb |deb [signed-by=/usr/share/keyrings/microsoft-prod.gpg] |' \
+       > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 \
     && apt-get clean \
